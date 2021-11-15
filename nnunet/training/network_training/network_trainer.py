@@ -74,6 +74,7 @@ class NetworkTrainer(object):
         self.network: Tuple[SegmentationNetwork, nn.DataParallel] = None
         self.optimizer = None
         self.lr_scheduler = None
+        self.lr_divider = 1.0
         self.tr_gen = self.val_gen = None
         self.was_initialized = False
 
@@ -90,6 +91,7 @@ class NetworkTrainer(object):
         ################# THESE DO NOT NECESSARILY NEED TO BE MODIFIED #####################
         self.patience = 50
         self.val_eval_criterion_alpha = 0.9  # alpha * old + (1-alpha) * new
+        self.val_eval_criterion_MA_eps = 5e-4 # new MA must be at least this much better (greater)
         # if this is too low then the moving average will be too noisy and the training may terminate early. If it is
         # too high the training will take forever
         self.train_loss_MA_alpha = 0.93  # alpha * old + (1-alpha) * new
@@ -105,7 +107,9 @@ class NetworkTrainer(object):
         self.train_loss_MA = None
         self.best_val_eval_criterion_MA = None
         self.best_MA_tr_loss_for_patience = None
+        self.best_MA_val_eval_criterion_for_patience = None
         self.best_epoch_based_on_MA_tr_loss = None
+        self.best_epoch_based_on_MA_val_eval_criterion = None
         self.all_tr_losses = []
         self.all_val_losses = []
         self.all_val_losses_tr_mode = []
@@ -551,54 +555,53 @@ class NetworkTrainer(object):
                                              self.all_val_eval_metrics[-1]
 
     def manage_patience(self):
+        """
+        Modified based on original code.
+        The early stopping is handled based on validation metric instead of training loss
+        """
         # update patience
         continue_training = True
         if self.patience is not None:
-            # if best_MA_tr_loss_for_patience and best_epoch_based_on_MA_tr_loss were not yet initialized,
+            # if best_MA_val_eval_criterion_for_patience and 
+            # best_epoch_based_on_MA_val_eval_criterion were not yet initialized,
             # initialize them
-            if self.best_MA_tr_loss_for_patience is None:
-                self.best_MA_tr_loss_for_patience = self.train_loss_MA
+            if self.best_MA_val_eval_criterion_for_patience is None:
+                self.best_MA_val_eval_criterion_for_patience = self.val_eval_criterion_MA
 
-            if self.best_epoch_based_on_MA_tr_loss is None:
-                self.best_epoch_based_on_MA_tr_loss = self.epoch
+            if self.best_epoch_based_on_MA_val_eval_criterion is None:
+                self.best_epoch_based_on_MA_val_eval_criterion = self.epoch
 
             if self.best_val_eval_criterion_MA is None:
                 self.best_val_eval_criterion_MA = self.val_eval_criterion_MA
 
             # check if the current epoch is the best one according to moving average of validation criterion. If so
             # then save 'best' model
-            # Do not use this for validation. This is intended for test set prediction only.
-            #self.print_to_log_file("current best_val_eval_criterion_MA is %.4f0" % self.best_val_eval_criterion_MA)
-            #self.print_to_log_file("current val_eval_criterion_MA is %.4f" % self.val_eval_criterion_MA)
-
+            self.print_to_log_file(f"val critetion MA: {self.val_eval_criterion_MA:.6f}")
             if self.val_eval_criterion_MA > self.best_val_eval_criterion_MA:
                 self.best_val_eval_criterion_MA = self.val_eval_criterion_MA
-                #self.print_to_log_file("saving best epoch checkpoint...")
+                self.print_to_log_file("saving best epoch checkpoint...")
                 if self.save_best_checkpoint: self.save_checkpoint(join(self.output_folder, "model_best.model"))
-
-            # Now see if the moving average of the train loss has improved. If yes then reset patience, else
-            # increase patience
-            if self.train_loss_MA + self.train_loss_MA_eps < self.best_MA_tr_loss_for_patience:
-                self.best_MA_tr_loss_for_patience = self.train_loss_MA
-                self.best_epoch_based_on_MA_tr_loss = self.epoch
-                #self.print_to_log_file("New best epoch (train loss MA): %03.4f" % self.best_MA_tr_loss_for_patience)
-            else:
-                pass
-                #self.print_to_log_file("No improvement: current train MA %03.4f, best: %03.4f, eps is %03.4f" %
-                #                       (self.train_loss_MA, self.best_MA_tr_loss_for_patience, self.train_loss_MA_eps))
+            
+            # Now see if the moving average of the validation criterion has improved
+            if self.val_eval_criterion_MA > self.best_MA_val_eval_criterion_for_patience + self.val_eval_criterion_MA_eps:
+                self.best_MA_val_eval_criterion_for_patience = self.val_eval_criterion_MA
+                self.best_epoch_based_on_MA_val_eval_criterion = self.epoch
 
             # if patience has reached its maximum then finish training (provided lr is low enough)
-            if self.epoch - self.best_epoch_based_on_MA_tr_loss > self.patience:
+            # if lr is still high, divide lr by 2
+            if self.epoch - self.best_epoch_based_on_MA_val_eval_criterion > self.patience:
                 if self.optimizer.param_groups[0]['lr'] > self.lr_threshold:
-                    #self.print_to_log_file("My patience ended, but I believe I need more time (lr > 1e-6)")
-                    self.best_epoch_based_on_MA_tr_loss = self.epoch - self.patience // 2
+                    self.print_to_log_file("My patience ended, but I believe I need more time (lr > 1e-6)")
+                    self.best_epoch_based_on_MA_val_eval_criterion = self.epoch - self.patience // 2
+                    self.lr_divider *= 2.0
                 else:
-                    #self.print_to_log_file("My patience ended")
+                    self.print_to_log_file("My patience ended")
                     continue_training = False
-            else:
-                pass
-                #self.print_to_log_file(
-                #    "Patience: %d/%d" % (self.epoch - self.best_epoch_based_on_MA_tr_loss, self.patience))
+            elif self.epoch > self.best_epoch_based_on_MA_val_eval_criterion:
+                self.print_to_log_file(f"No improvement on val_eval_criterion_MA: \n\
+                    current {self.val_eval_criterion_MA}\n\
+                    best {self.best_MA_val_eval_criterion_for_patience}\n\
+                    patience {self.epoch - self.best_epoch_based_on_MA_val_eval_criterion}")
 
         return continue_training
 
@@ -613,7 +616,6 @@ class NetworkTrainer(object):
         self.maybe_save_checkpoint()
 
         self.update_eval_criterion_MA()
-
         continue_training = self.manage_patience()
         return continue_training
 
