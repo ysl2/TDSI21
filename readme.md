@@ -11,4 +11,7 @@ cd TDSI21-Shoulder-Muscle-Segmentation
 pip install -e .
 ```
 
-To use RMSProp : nnUNet_train 2d rmsPropTrainer Task500_Epaule FOLD --npz
+To use RMSProp : 
+```
+nnUNet_train 2d rmsPropTrainer Task500_Epaule FOLD --npz
+```
