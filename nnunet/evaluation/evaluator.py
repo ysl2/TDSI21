@@ -51,10 +51,10 @@ class Evaluator:
     ]
 
     default_advanced_metrics = [
-        #"Hausdorff Distance",
+        "Hausdorff Distance",
         "Hausdorff Distance 95",
-        #"Avg. Surface Distance",
-        #"Avg. Symmetric Surface Distance"
+        # "Avg. Surface Distance",
+        "Avg. Symmetric Surface Distance"
     ]
 
     def __init__(self,
@@ -443,7 +443,7 @@ def aggregate_scores_for_experiment(score_file,
     return json_dict
 
 
-def evaluate_folder(folder_with_gts: str, folder_with_predictions: str, labels: tuple, **metric_kwargs):
+def evaluate_folder(folder_with_gts: str, folder_with_predictions: str, labels: tuple, num_threads=8, **metric_kwargs):
     """
     writes a summary.json to folder_with_predictions
     :param folder_with_gts: folder where the ground truth segmentations are saved. Must be nifti files.
@@ -457,7 +457,7 @@ def evaluate_folder(folder_with_gts: str, folder_with_predictions: str, labels: 
     assert all([i in files_gt for i in files_pred]), "files missing in folder_with_gts"
     test_ref_pairs = [(join(folder_with_predictions, i), join(folder_with_gts, i)) for i in files_pred]
     res = aggregate_scores(test_ref_pairs, json_output_file=join(folder_with_predictions, "summary.json"),
-                           num_threads=8, labels=labels, **metric_kwargs)
+                           num_threads=num_threads, labels=labels, **metric_kwargs)
     return res
 
 
@@ -479,5 +479,9 @@ def nnunet_evaluate_folder():
                                                                        "evaluate the background label (0) but in "
                                                                        "this case that would not gie any useful "
                                                                        "information.")
+    parser.add_argument("--num_threads", type=int, default=8, help="Number of threads for evaluation")
     args = parser.parse_args()
-    return evaluate_folder(args.ref, args.pred, args.l)
+    return evaluate_folder(args.ref, args.pred, args.l, num_threads=args.num_threads, advanced=True)
+
+if __name__ == "__main__":
+    nnunet_evaluate_folder()
