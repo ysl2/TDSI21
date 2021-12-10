@@ -36,17 +36,14 @@ from nnunet.training.learning_rate.poly_lr import poly_lr
 from batchgenerators.utilities.file_and_folder_operations import *
 
 
-class nnUNetTrainerV2(nnUNetTrainer):
-    """
-    Info for Fabian: same as internal nnUNetTrainerV2_2
-    """
+class rmsPropTrainer(nnUNetTrainer):
 
     def __init__(self, plans_file, fold, output_folder=None, dataset_directory=None, batch_dice=True, stage=None,
                  unpack_data=True, deterministic=True, fp16=False):
         super().__init__(plans_file, fold, output_folder, dataset_directory, batch_dice, stage, unpack_data,
                          deterministic, fp16)
         self.max_num_epochs = 1000
-        self.initial_lr = 1e-2
+        self.initial_lr = 1e-4
         self.deep_supervision_scales = None
         self.ds_loss_weights = None
 
@@ -92,7 +89,6 @@ class nnUNetTrainerV2(nnUNetTrainer):
             self.folder_with_preprocessed_data = join(self.dataset_directory, self.plans['data_identifier'] +
                                                       "_stage%d" % self.stage)
             if training:
-                # dataloader
                 self.dl_tr, self.dl_val = self.get_basic_generators()
                 if self.unpack_data:
                     print("unpacking dataset")
@@ -102,7 +98,7 @@ class nnUNetTrainerV2(nnUNetTrainer):
                     print(
                         "INFO: Not unpacking data! Training may be slow due to that. Pray you are not using 2d or you "
                         "will wait all winter for your model to finish!")
-                # train/val data generator
+
                 self.tr_gen, self.val_gen = get_moreDA_augmentation(
                     self.dl_tr, self.dl_val,
                     self.data_aug_params[
@@ -164,9 +160,8 @@ class nnUNetTrainerV2(nnUNetTrainer):
 
     def initialize_optimizer_and_scheduler(self):
         assert self.network is not None, "self.initialize_network must be called first"
-        self.optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay,
-                                         momentum=0.99, nesterov=True)
-        self.lr_scheduler = None
+        self.optimizer = torch.optim.RMSprop(self.network.parameters())
+
 
     def run_online_evaluation(self, output, target):
         """
@@ -403,18 +398,18 @@ class nnUNetTrainerV2(nnUNetTrainer):
             ep = self.epoch + 1
         else:
             ep = epoch
-        self.optimizer.param_groups[0]['lr'] = poly_lr(ep, self.max_num_epochs, self.initial_lr, 0.9)/self.lr_divider
+        self.optimizer.param_groups[0]['lr'] = poly_lr(ep, self.max_num_epochs, self.initial_lr, 0.9)
         self.print_to_log_file("lr:", np.round(self.optimizer.param_groups[0]['lr'], decimals=6))
 
     def on_epoch_end(self):
         """
-        Modified for early stopping
+        overwrite patient-based early stopping. Always run to 1000 epochs
         :return:
         """
-        continue_training = super().on_epoch_end()
-        # continue_training = self.epoch < self.max_num_epochs
+        super().on_epoch_end()
+        continue_training = self.epoch < self.max_num_epochs
 
-        # it can rarely happen that the momentum of nnUNetTrainerV2 is too high for some dataset. If at epoch 100 the
+        # it can rarely happen that the momentum of rmsPropTrainer is too high for some dataset. If at epoch 100 the
         # estimated validation Dice is still 0 then we reduce the momentum from 0.99 to 0.95
         if self.epoch == 100:
             if self.all_val_eval_metrics[-1] == 0:

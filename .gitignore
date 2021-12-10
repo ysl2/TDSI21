@@ -115,3 +115,5 @@ ENV/
 
 nnunet/.vscode/launch.json
 *.vscode*
+*.vscode
+
