@@ -227,7 +227,7 @@ def determine_postprocessing(base, gt_labels_folder, raw_subfolder_name="validat
     # evaluate postprocessed predictions
     _ = aggregate_scores(pred_gt_tuples, labels=classes,
                          json_output_file=join(folder_all_classes_as_fg, "summary.json"),
-                         json_author="Fabian", num_threads=processes)
+                         json_author="Fabian", num_threads=processes, advanced=True)
 
     # now we need to figure out if doing this improved the dice scores. We will implement that defensively in so far
     # that if a single class got worse as a result we won't do this. We can change this in the future but right now I
@@ -323,7 +323,7 @@ def determine_postprocessing(base, gt_labels_folder, raw_subfolder_name="validat
         # evaluate postprocessed predictions
         _ = aggregate_scores(pred_gt_tuples, labels=classes,
                              json_output_file=join(folder_per_class, "summary.json"),
-                             json_author="Fabian", num_threads=processes)
+                             json_author="Fabian", num_threads=processes, advanced=True)
 
         if do_fg_cc:
             old_res = deepcopy(validation_result_PP_test)
@@ -381,7 +381,7 @@ def determine_postprocessing(base, gt_labels_folder, raw_subfolder_name="validat
     # evaluate postprocessed predictions
     _ = aggregate_scores(pred_gt_tuples, labels=classes,
                          json_output_file=join(base, final_subf_name, "summary.json"),
-                         json_author="Fabian", num_threads=processes)
+                         json_author="Fabian", num_threads=processes, advanced=True)
 
     pp_results['min_valid_object_sizes'] = str(pp_results['min_valid_object_sizes'])
 

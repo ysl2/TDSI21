@@ -46,8 +46,8 @@ class NeuralNetwork(nn.Module):
 
 
 class SegmentationNetwork(NeuralNetwork):
-    def __init__(self):
-        super(NeuralNetwork, self).__init__()
+    def __init__(self, **kwargs):
+        super(NeuralNetwork, self).__init__(**kwargs)
 
         # if we have 5 pooling then our patch size must be divisible by 2**5
         self.input_shape_must_be_divisible_by = None  # for example in a 2d network that does 5 pool in x and 6 pool
