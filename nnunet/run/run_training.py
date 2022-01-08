@@ -90,6 +90,7 @@ def main():
                              'file, for example model_final_checkpoint.model). Will only be used when actually training. '
                              'Optional. Beta. Use with caution.')
     parser.add_argument("--do_elastic", action="store_true", help="Perform elastic deformation in data augmentation")
+    parser.add_argument("--use_progress_bar", action="store_true", help="Show progress bar while training")
 
     args = parser.parse_args()
 
@@ -153,6 +154,7 @@ def main():
                             batch_dice=batch_dice, stage=stage, unpack_data=decompress_data,
                             deterministic=deterministic,
                             fp16=run_mixed_precision)
+    trainer.use_progress_bar = args.use_progress_bar
     setattr(trainer, "do_elastic", args.do_elastic)
     if args.disable_saving:
         trainer.save_final_checkpoint = False # whether or not to save the final checkpoint

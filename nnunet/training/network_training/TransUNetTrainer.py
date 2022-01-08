@@ -18,6 +18,7 @@ from typing import Tuple
 
 import numpy as np
 import torch
+from nnunet.network_architecture.generic_transUNet3D import GenericTransUNet3D
 from nnunet.training.data_augmentation.data_augmentation_moreDA import get_moreDA_augmentation
 from nnunet.training.loss_functions.deep_supervision import MultipleOutputLoss2
 from nnunet.utilities.to_torch import maybe_to_torch, to_cuda
@@ -95,12 +96,7 @@ class TransUNetTrainer(nnUNetTrainer):
         self.transpose_forward = plans['transpose_forward']
         self.transpose_backward = plans['transpose_backward']
 
-        if len(self.patch_size) == 2:
-            self.threeD = False
-        elif len(self.patch_size) == 3:
-            raise ValueError("TransUNet supports 2D only (for now)")
-        else:
-            raise RuntimeError("invalid patch size in plans file: %s" % str(self.patch_size))
+        self.threeD = plans['plans_per_stage'][0]["config"]["threeD"]
 
 
     def initialize(self, training=True, force_load_plans=False):
@@ -185,7 +181,10 @@ class TransUNetTrainer(nnUNetTrainer):
         :return:
         """
         config = self.plans["plans_per_stage"][0]["config"]
-        self.network = GenericTransUNet(config)
+        if self.threeD:
+            self.network = GenericTransUNet3D(config, do_ds=True)
+        else:
+            self.network = GenericTransUNet(config, do_ds=True)
         if torch.cuda.is_available():
             self.network.cuda()
 

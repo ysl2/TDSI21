@@ -34,13 +34,18 @@ def get_configuration_from_output_folder(folder):
 def get_default_configuration(network, task, network_trainer, plans_identifier=default_plans_identifier,
                               search_in=(nnunet.__path__[0], "training", "network_training"),
                               base_module='nnunet.training.network_training'):
-    assert network in ['2d', '3d_lowres', '3d_fullres', '3d_cascade_fullres'], \
-        "network can only be one of the following: \'3d_lowres\', \'3d_fullres\', \'3d_cascade_fullres\'"
+    assert network in ['2d', '3d_lowres', '3d_fullres', '3d_cascade_fullres', 'TransUNet3D', "TransUNet2D"], \
+        "network can only be one of the following: \'3d_lowres\', \'3d_fullres\', \'3d_cascade_fullres\', TransUNet3D, TransUNet2D"
 
     dataset_directory = join(preprocessing_output_dir, task)
 
     if network == '2d':
         plans_file = join(preprocessing_output_dir, task, plans_identifier + "_plans_2D.pkl")
+    elif network == "TransUNet2D":
+        plans_identifier = "nnUNetPlans_transUNet"
+        plans_file = join(preprocessing_output_dir, task, "nnUNetPlans_transUNet_plans_2D.pkl")
+    elif network == "TransUNet3D":
+        plans_file = join(preprocessing_output_dir, task, "nnUNetPlans_transUNet3D_plans_3D.pkl")
     else:
         plans_file = join(preprocessing_output_dir, task, plans_identifier + "_plans_3D.pkl")
 
@@ -51,7 +56,7 @@ def get_default_configuration(network, task, network_trainer, plans_identifier=d
         raise RuntimeError("3d_lowres/3d_cascade_fullres only applies if there is more than one stage. This task does "
                            "not require the cascade. Run 3d_fullres instead")
 
-    if network == '2d' or network == "3d_lowres":
+    if network in ["2d", "3d_lowres", "TransUNet3D", "TransUNet2D"]:
         stage = 0
     else:
         stage = possible_stages[-1]
