@@ -99,9 +99,12 @@ def main():
             if t not in id_task_mapping.keys():
                 task_name = find_task_name(get_output_folder_name(m), t)
                 id_task_mapping[t] = task_name
+            
             # Dirty code
             if m == "TransUNet2D":
                 pl = "nnUNetPlans_transUNet"
+            elif m == "TransUNet3D":
+                pl = default_plans_identifier
             if m.startswith("TransUNet"):
                 trainer = "TransUNetTrainer"
                 

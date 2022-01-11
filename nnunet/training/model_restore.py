@@ -147,6 +147,17 @@ def load_model_and_checkpoint_files(folder, folds=None, mixed_precision=None, ch
     all_params = [torch.load(i, map_location=torch.device('cpu')) for i in all_best_model_files]
     return trainer, all_params
 
+def print_model_summary(trainer, params):
+    try:
+        from torchinfo import summary
+    except Exception as e:
+        print(e)
+        print("You should install torchinfo to print model summary")
+    input_shape = trainer.plans["plans_per_stage"][0]["patch_size"].tolist()
+    input_shape = [1, trainer.plans["num_modalities"], *input_shape]
+    summary(trainer.network, input_shape)
+
+
 
 if __name__ == "__main__":
     pkl = "/home/fabian/PhD/results/nnUNetV2/nnUNetV2_3D_fullres/Task004_Hippocampus/fold0/model_best.model.pkl"
