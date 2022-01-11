@@ -96,7 +96,16 @@ class TransUNetTrainer(nnUNetTrainer):
         self.transpose_forward = plans['transpose_forward']
         self.transpose_backward = plans['transpose_backward']
 
-        self.threeD = plans['plans_per_stage'][0]["config"]["threeD"]
+        model_config = plans['plans_per_stage'][0]["config"]
+        if "threeD" in model_config:
+            self.threeD = model_config["threeD"]
+        else:
+            if len(model_config["patches"]["size"]) == 2:
+                self.threeD = False
+            elif len(model_config["patches"]["size"]) == 3:
+                self.threeD = True
+            else:
+                raise ValueError("Cannot determine if the model is 2D or 3D")
 
 
     def initialize(self, training=True, force_load_plans=False):

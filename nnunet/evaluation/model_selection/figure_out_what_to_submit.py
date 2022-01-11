@@ -52,7 +52,7 @@ def main():
                                            "models in one json each for easy interpretability")
 
     parser.add_argument("-m", '--models', nargs="+", required=False, default=['2d', '3d_lowres', '3d_fullres',
-                                                                              '3d_cascade_fullres'])
+                                                                              '3d_cascade_fullres', 'TransUNet2D', 'TransUNet3D'])
     parser.add_argument("-t", '--task_ids', nargs="+", required=True)
 
     parser.add_argument("-tr", type=str, required=False, default=default_trainer,
@@ -99,7 +99,12 @@ def main():
             if t not in id_task_mapping.keys():
                 task_name = find_task_name(get_output_folder_name(m), t)
                 id_task_mapping[t] = task_name
-
+            # Dirty code
+            if m == "TransUNet2D":
+                pl = "nnUNetPlans_transUNet"
+            if m.startswith("TransUNet"):
+                trainer = "TransUNetTrainer"
+                
             output_folder = get_output_folder_name(m, id_task_mapping[t], trainer, pl)
             if not isdir(output_folder):
                 raise RuntimeError("Output folder for model %s is missing, expected: %s" % (m, output_folder))

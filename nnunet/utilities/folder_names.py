@@ -30,7 +30,7 @@ def get_output_folder_name(model: str, task: str = None, trainer: str = None, pl
     :param overwrite_training_output_dir:
     :return:
     """
-    assert model in ["2d", "3d_cascade_fullres", '3d_fullres', '3d_lowres']
+    assert model in ["2d", "3d_cascade_fullres", '3d_fullres', '3d_lowres', 'TransUNet2D', 'TransUNet3D']
 
     if overwrite_training_output_dir is not None:
         tr_dir = overwrite_training_output_dir

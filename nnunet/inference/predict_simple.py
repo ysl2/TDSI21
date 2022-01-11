@@ -47,7 +47,7 @@ def main():
                              "Default is %s" % default_cascade_trainer, required=False,
                         default=default_cascade_trainer)
 
-    parser.add_argument('-m', '--model', help="2d, 3d_lowres, 3d_fullres or 3d_cascade_fullres. Default: 3d_fullres",
+    parser.add_argument('-m', '--model', help="2d, 3d_lowres, 3d_fullres, 3d_cascade_fullres, TransUNet2D, TransUNet3D. Default: 3d_fullres",
                         default="3d_fullres", required=False)
 
     parser.add_argument('-p', '--plans_identifier', help='do not touch this unless you know what you are doing',
@@ -150,8 +150,8 @@ def main():
         task_id = int(task_name)
         task_name = convert_id_to_task_name(task_id)
 
-    assert model in ["2d", "3d_lowres", "3d_fullres", "3d_cascade_fullres"], "-m must be 2d, 3d_lowres, 3d_fullres or " \
-                                                                             "3d_cascade_fullres"
+    assert model in ["2d", "3d_lowres", "3d_fullres", "3d_cascade_fullres", "TransUNet2D", "TransUNet3D"], \
+        "-m must be 2d, 3d_lowres, 3d_fullres, 3d_cascade_fullres, TransUNet2D, TransUNet3D"
 
     # if force_separate_z == "None":
     #     force_separate_z = None
@@ -208,6 +208,14 @@ def main():
         trainer = cascade_trainer_class_name
     else:
         trainer = trainer_class_name
+
+    # Dirty code !
+    if model == "TransUNet2D":
+        trainer = "TransUNetTrainer"
+        args.plans_identifier = "nnUNetPlans_transUNet"
+    elif model == "TransUNet3D":
+        trainer = "TransUNetTrainer"
+
 
     model_folder_name = join(network_training_output_dir, model, task_name, trainer + "__" +
                               args.plans_identifier)
