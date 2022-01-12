@@ -13,9 +13,28 @@
 #    limitations under the License.
 
 
+from typing import Tuple
+from nnunet.paths import default_plans_identifier, default_cascade_trainer, default_trainer
+
+
 class no_op(object):
     def __enter__(self):
         pass
 
     def __exit__(self, *args):
         pass
+
+
+def get_default_trainer_planer_name(model: str) -> Tuple[str, str]:
+    if model == "3d_cascade_fullres":
+        trainer = default_cascade_trainer
+    elif model.startswith("TransUNet"):
+        trainer = "TransUNetTrainer"
+    else:
+        trainer = default_trainer
+    
+    if model == "TransUNet2D":
+        planner = "nnUNetPlans_transUNet"
+    else:
+        planner = default_plans_identifier
+    return (trainer, planner)
