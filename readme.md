@@ -37,7 +37,7 @@ For more detail about training, inference and evaluation, please check [Wiki/Tra
 
 Once the training is done, you can check the number of parameters, intermediate tensor shape and model structure by `nnUNet_model_summary`
 ```
-nnUNet_model -t TASK_NAME -m MODEL_NAME
+nnUNet_model_summary -t TASK_NAME -m MODEL_NAME
 ```
 
 ## Minor modifications
