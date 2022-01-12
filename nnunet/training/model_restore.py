@@ -18,6 +18,8 @@ from batchgenerators.utilities.file_and_folder_operations import *
 import importlib
 import pkgutil
 from nnunet.training.network_training.nnUNetTrainer import nnUNetTrainer
+from nnunet.training.network_training.nnUNetTrainerV2_CascadeFullRes import nnUNetTrainerV2CascadeFullRes
+
 
 
 def recursive_find_python_class(folder, trainer_name, current_module):
@@ -155,6 +157,8 @@ def print_model_summary(trainer, params):
         print("You should install torchinfo to print model summary")
     input_shape = trainer.plans["plans_per_stage"][0]["patch_size"].tolist()
     input_shape = [1, trainer.plans["num_modalities"], *input_shape]
+    if isinstance(trainer, nnUNetTrainerV2CascadeFullRes):
+        input_shape[1] = trainer.plans["num_classes"] + 1
     summary(trainer.network, input_shape)
 
 

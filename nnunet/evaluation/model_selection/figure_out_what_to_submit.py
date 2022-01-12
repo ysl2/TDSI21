@@ -101,6 +101,7 @@ def main():
                 id_task_mapping[t] = task_name
             
             # Dirty code
+            pl = args.pl
             if m == "TransUNet2D":
                 pl = "nnUNetPlans_transUNet"
             elif m == "TransUNet3D":
@@ -161,22 +162,28 @@ def main():
             all_results[m] = load_json(summary_file)['results']['mean']
             valid_models.append(m)
 
+        pl = args.pl
         if not disable_ensembling:
             # now run ensembling and add ensembling to results
             print("\nI will now ensemble combinations of the following models:\n", valid_models)
             if len(valid_models) > 1:
                 for m1, m2 in combinations(valid_models, 2):
 
-                    trainer_m1 = trc if m1 == "3d_cascade_fullres" else tr
-                    trainer_m2 = trc if m2 == "3d_cascade_fullres" else tr
 
-                    ensemble_name = "ensemble_" + m1 + "__" + trainer_m1 + "__" + pl + "--" + m2 + "__" + trainer_m2 + "__" + pl
+                    pl1, trainer_m1 = get_pl_trainer(m1, pl, tr)
+                    pl2, trainer_m2 = get_pl_trainer(m2, pl, tr)
+
+                    trainer_m1 = trc if m1 == "3d_cascade_fullres" else trainer_m1
+                    trainer_m2 = trc if m2 == "3d_cascade_fullres" else trainer_m2
+
+                    ensemble_name = "ensemble_" + m1 + "__" + trainer_m1 + "__" + pl1 + "--" + m2 + "__" + trainer_m2 + "__" + pl2
                     output_folder_base = join(network_training_output_dir, "ensembles", id_task_mapping[t], ensemble_name)
                     maybe_mkdir_p(output_folder_base)
 
-                    network1_folder = get_output_folder_name(m1, id_task_mapping[t], trainer_m1, pl)
-                    network2_folder = get_output_folder_name(m2, id_task_mapping[t], trainer_m2, pl)
-
+                    network1_folder = get_output_folder_name(m1, id_task_mapping[t], trainer_m1, pl1)
+                    network2_folder = get_output_folder_name(m2, id_task_mapping[t], trainer_m2, pl2)
+                    # print("-"*30)
+                    # print(network2_folder, trainer_m2, pl2)
                     print("ensembling", network1_folder, network2_folder)
                     ensemble(network1_folder, network2_folder, output_folder_base, id_task_mapping[t], validation_folder, folds, allow_ensembling=not disable_postprocessing)
                     # ensembling will automatically do postprocessingget_foreground_mean
@@ -205,9 +212,9 @@ def main():
                     model1, model2 = tmp.split("--")
                     m1, t1, pl1 = model1.split("__")
                     m2, t2, pl2 = model2.split("__")
-                    predict_str += "nnUNet_predict -i FOLDER_WITH_TEST_CASES -o OUTPUT_FOLDER_MODEL1 -tr " + tr + " -ctr " + trc + " -m " + m1 + " -p " + pl + " -t " + \
+                    predict_str += "nnUNet_predict -i FOLDER_WITH_TEST_CASES -o OUTPUT_FOLDER_MODEL1 -tr " + tr + " -ctr " + trc + " -m " + m1 + " -p " + pl1 + " -t " + \
                                    id_task_mapping[t] + "\n"
-                    predict_str += "nnUNet_predict -i FOLDER_WITH_TEST_CASES -o OUTPUT_FOLDER_MODEL2 -tr " + tr + " -ctr " + trc + " -m " + m2 + " -p " + pl + " -t " + \
+                    predict_str += "nnUNet_predict -i FOLDER_WITH_TEST_CASES -o OUTPUT_FOLDER_MODEL2 -tr " + tr + " -ctr " + trc + " -m " + m2 + " -p " + pl2 + " -t " + \
                                    id_task_mapping[t] + "\n"
 
                     if not disable_postprocessing:
@@ -237,6 +244,18 @@ def main():
                     f.write(",%01.4f" % all_results[m][str(c)]["Dice"])
                 f.write(",%01.4f" % all_results[m]['mean']["Dice"])
                 f.write("\n")
+
+def get_pl_trainer(model, default_pl, default_tr):
+    # Dirty code
+    if model == "TransUNet2D":
+        pl = "nnUNetPlans_transUNet"
+    else:
+        pl = default_pl
+    if "TransUNet" in model:
+        trainer = "TransUNetTrainer"
+    else:
+        trainer = default_tr
+    return pl,trainer
 
 
 if __name__ == "__main__":
