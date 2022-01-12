@@ -19,7 +19,7 @@ cd TDSI21-Shoulder-Muscle-Segmentation
 pip install -e .
 ```
 
-# New features added in this custum nnUNet
+# New features added
 
 ## RMSProp 
 To use RMSProp in training: 
