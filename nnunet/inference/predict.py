@@ -184,7 +184,7 @@ def predict_cases(model, list_of_lists, output_filenames, folds, save_npz, num_t
     trainer, params = load_model_and_checkpoint_files(model, folds, mixed_precision=mixed_precision,
                                                       checkpoint_name=checkpoint_name)
 
-    print_model_summary(trainer, params)
+    # print_model_summary(trainer, params)
 
     if segmentation_export_kwargs is None:
         if 'segmentation_export_params' in trainer.plans.keys():

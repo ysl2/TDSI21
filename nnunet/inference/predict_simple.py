@@ -228,6 +228,6 @@ def main():
                         mixed_precision=not args.disable_mixed_precision,
                         step_size=step_size, checkpoint_name=args.chk)
 
-
+    print("=== PREDICTION DONE ===")
 if __name__ == "__main__":
     main()

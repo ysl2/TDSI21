@@ -12,18 +12,19 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-
+import os
 import collections
 import inspect
 import json
 import hashlib
 from datetime import datetime
 from multiprocessing.pool import Pool
+from pickle import load
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
 from nnunet.evaluation.metrics import ConfusionMatrix, ALL_METRICS
-from batchgenerators.utilities.file_and_folder_operations import save_json, subfiles, join
+from batchgenerators.utilities.file_and_folder_operations import save_json, load_json, subfiles, join
 from collections import OrderedDict
 
 
@@ -443,7 +444,7 @@ def aggregate_scores_for_experiment(score_file,
     return json_dict
 
 
-def evaluate_folder(folder_with_gts: str, folder_with_predictions: str, labels: tuple, num_threads=8, **metric_kwargs):
+def evaluate_folder(folder_with_gts: str, folder_with_predictions: str, labels: tuple, overwrite_summary=True, num_threads=8, **metric_kwargs):
     """
     writes a summary.json to folder_with_predictions
     :param folder_with_gts: folder where the ground truth segmentations are saved. Must be nifti files.
@@ -451,13 +452,22 @@ def evaluate_folder(folder_with_gts: str, folder_with_predictions: str, labels: 
     :param labels: tuple of int with the labels in the dataset. For example (0, 1, 2, 3) for Task001_BrainTumour.
     :return:
     """
-    files_gt = subfiles(folder_with_gts, suffix=".nii.gz", join=False)
-    files_pred = subfiles(folder_with_predictions, suffix=".nii.gz", join=False)
-    assert all([i in files_pred for i in files_gt]), "files missing in folder_with_predictions"
-    assert all([i in files_gt for i in files_pred]), "files missing in folder_with_gts"
-    test_ref_pairs = [(join(folder_with_predictions, i), join(folder_with_gts, i)) for i in files_pred]
-    res = aggregate_scores(test_ref_pairs, json_output_file=join(folder_with_predictions, "summary.json"),
-                           num_threads=num_threads, labels=labels, **metric_kwargs)
+    summary_path = os.path.join(folder_with_predictions, "summary.json")
+    if os.path.isfile(summary_path) and not overwrite_summary:
+        message = """
+        The evaluation summary.json already exists. 
+        If you want to rerun the evaluation and rewrite the existing summary.json, run with overwrite_summary=True
+        """
+        print(message)
+        res = load_json(summary_path)
+    else:
+        files_gt = subfiles(folder_with_gts, suffix=".nii.gz", join=False)
+        files_pred = subfiles(folder_with_predictions, suffix=".nii.gz", join=False)
+        assert all([i in files_pred for i in files_gt]), "files missing in folder_with_predictions"
+        assert all([i in files_gt for i in files_pred]), "files missing in folder_with_gts"
+        test_ref_pairs = [(join(folder_with_predictions, i), join(folder_with_gts, i)) for i in files_pred]
+        res = aggregate_scores(test_ref_pairs, json_output_file=join(folder_with_predictions, "summary.json"),
+                            num_threads=num_threads, labels=labels, **metric_kwargs)
     return res
 
 
