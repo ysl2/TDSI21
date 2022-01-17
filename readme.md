@@ -6,7 +6,7 @@ This is an academic project of TDSI program (Image and Signal Processing) at INS
 
 The original README of nnUNet can be found [here](/nnunet_readme.md)
 
-Our interpretation of nnUNet is resumed in the Wiki pages of this repository.
+Our interpretation of nnUNet is resumed in the Wiki pages of this repository. --> see [here](https://github.com/nntrongnghia/TDSI21-Shoulder-Muscle-Segmentation/wiki)
 
 # Install this nnUNet package
 - Remove old nnUNet
