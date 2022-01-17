@@ -43,5 +43,5 @@ nnUNet_model_summary -t TASK_NAME -m MODEL_NAME
 ## Minor modifications
 - Early stopping with patien of 50 epochs
 - Elastic Deformation in data augmentation is available through `--do_elastic`
-- Advanced metrics for evaluation: Hausdorff Distance and Average Symmetric Surface Distance
+- Advanced metrics for evaluation: Hausdorff Distance and Average Symmetric Surface Distance 
 
