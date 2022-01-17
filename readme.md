@@ -6,7 +6,7 @@ This is an academic project of TDSI program (Image and Signal Processing) at INS
 
 The original README of nnUNet can be found [here](/nnunet_readme.md)
 
-Our interpretation of nnUNet is resumed in the Wiki pages of this repository.
+Our interpretation of nnUNet is resumed in the Wiki pages of this repository. --> see [here](https://github.com/nntrongnghia/TDSI21-Shoulder-Muscle-Segmentation/wiki)
 
 # Install this nnUNet package
 - Remove old nnUNet
@@ -19,7 +19,7 @@ cd TDSI21-Shoulder-Muscle-Segmentation
 pip install -e .
 ```
 
-# New features added in this custum nnUNet
+# New features added
 
 ## RMSProp 
 To use RMSProp in training: 
@@ -37,11 +37,11 @@ For more detail about training, inference and evaluation, please check [Wiki/Tra
 
 Once the training is done, you can check the number of parameters, intermediate tensor shape and model structure by `nnUNet_model_summary`
 ```
-nnUNet_model -t TASK_NAME -m MODEL_NAME
+nnUNet_model_summary -t TASK_NAME -m MODEL_NAME
 ```
 
 ## Minor modifications
 - Early stopping with patien of 50 epochs
 - Elastic Deformation in data augmentation is available through `--do_elastic`
-- Advanced metrics for evaluation: Hausdorff Distance and Average Symmetric Surface Distance
+- Advanced metrics for evaluation: Hausdorff Distance and Average Symmetric Surface Distance 
 

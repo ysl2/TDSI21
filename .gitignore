@@ -106,7 +106,6 @@ ENV/
 *.pkl
 *.xml
 *.pkl
-*.pdf
 *.png
 *.jpg
 *.jpeg
