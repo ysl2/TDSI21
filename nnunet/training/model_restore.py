@@ -156,9 +156,9 @@ def print_model_summary(trainer, params):
         print(e)
         print("You should install torchinfo to print model summary")
     input_shape = trainer.plans["plans_per_stage"][0]["patch_size"].tolist()
-    input_shape = [1, trainer.plans["num_modalities"], *input_shape]
-    if isinstance(trainer, nnUNetTrainerV2CascadeFullRes):
-        input_shape[1] = trainer.plans["num_classes"] + 1
+    input_shape = [1, trainer.num_input_channels, *input_shape]
+    # if isinstance(trainer, nnUNetTrainerV2CascadeFullRes):
+    #     input_shape[1] = trainer.plans["num_classes"] + 1
     summary(trainer.network, input_shape)
 
 

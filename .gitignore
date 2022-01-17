@@ -117,3 +117,6 @@ nnunet/.vscode/launch.json
 *.vscode*
 *.vscode
 
+notebooks/stat.ipynb
+.gitignore
+notebooks/Visualization.ipynb
