@@ -89,9 +89,10 @@ def create_lists_from_splitted_dataset(base_folder_splitted):
     num_modalities = len(d['modality'].keys())
     for tr in training_files:
         cur_pat = []
-        for mod in range(num_modalities):
-            cur_pat.append(join(base_folder_splitted, "imagesTr", tr['image'].split("/")[-1][:-7] +
-                                "_%04.0d.nii.gz" % mod))
+        # for mod in range(num_modalities):
+        #     cur_pat.append(join(base_folder_splitted, "imagesTr", tr['image'].split("/")[-1][:-7] +
+        #                         "_%04.0d.nii.gz" % mod))
+        cur_pat.append(join(base_folder_splitted, "imagesTr", tr['image'].split("/")[-1]))
         cur_pat.append(join(base_folder_splitted, "labelsTr", tr['label'].split("/")[-1]))
         lists.append(cur_pat)
     return lists, {int(i): d['modality'][str(i)] for i in d['modality'].keys()}

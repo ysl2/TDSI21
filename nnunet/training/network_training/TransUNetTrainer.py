@@ -417,7 +417,7 @@ class TransUNetTrainer(nnUNetTrainer):
 
         self.data_aug_params["scale_range"] = (0.7, 1.4)
         # default = False, set --do_elastic in nnUNet_train to set to True
-        self.data_aug_params["do_elastic"] = self.do_elastic 
+        self.data_aug_params["do_elastic"] = self.do_elastic
         self.data_aug_params['selected_seg_channels'] = [0]
         self.data_aug_params['patch_size_for_spatialtransform'] = self.patch_size
 
