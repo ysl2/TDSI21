@@ -31,10 +31,9 @@ PLEASE READ paths.md FOR INFORMATION TO HOW TO SET THIS UP
 # base = os.environ['nnUNet_raw_data_base'] if "nnUNet_raw_data_base" in os.environ.keys() else None
 # preprocessing_output_dir = os.environ['nnUNet_preprocessed'] if "nnUNet_preprocessed" in os.environ.keys() else None
 # network_training_output_dir_base = os.path.join(os.environ['RESULTS_FOLDER']) if "RESULTS_FOLDER" in os.environ.keys() else None
-
-base = yusongli.BASE
-preprocessing_output_dir = yusongli.PREPROCESSING_OUTPUT_DIR
-network_training_output_dir_base = yusongli.NETWORK_TRAINING_OUTPUT_DIR_BASE
+base = os.environ['nnUNet_raw_data_base'] if "nnUNet_raw_data_base" in os.environ.keys() else yusongli.BASE
+preprocessing_output_dir = os.environ['nnUNet_preprocessed'] if "nnUNet_preprocessed" in os.environ.keys() else yusongli.PREPROCESSING_OUTPUT_DIR
+network_training_output_dir_base = os.path.join(os.environ['RESULTS_FOLDER']) if "RESULTS_FOLDER" in os.environ.keys() else yusongli.NETWORK_TRAINING_OUTPUT_DIR_BASE
 
 if base is not None:
     nnUNet_raw_data = join(base, "nnUNet_raw_data")
