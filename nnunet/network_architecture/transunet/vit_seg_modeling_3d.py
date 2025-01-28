@@ -149,7 +149,7 @@ class Embeddings3D(nn.Module):
 
         if self.hybrid:
             self.hybrid_model = ResNetV2_3D(
-                block_units=config.resnet.num_layers, 
+                block_units=config.resnet.num_layers,
                 width_factor=config.resnet.width_factor,
                 cin=config.cin)
             in_channels = self.hybrid_model.width * 16
@@ -274,13 +274,13 @@ class Transformer3D(nn.Module):
         super(Transformer3D, self).__init__()
         self.embeddings = Embeddings3D(config, img_size=img_size)
         self.encoder = AttentionEncoder(config, vis)
-        self.embedding_shape = list(self.embeddings.embedding_shape.astype(np.int))
+        self.embedding_shape = list(self.embeddings.embedding_shape.astype(int))
 
     def forward(self, input_ids, reshape_output=False):
         embedding_output, features = self.embeddings(input_ids)
         encoded, attn_weights = self.encoder(
             embedding_output)  # (B, n_patch, hidden)
-        
+
         # reshape to (B, hidden, d, h, w) if needed
         if reshape_output:
             encoded = encoded.permute(0, 2, 1) # (B, hidden, n_patches)

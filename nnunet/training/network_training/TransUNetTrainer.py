@@ -36,6 +36,8 @@ from torch import nn
 from torch.cuda.amp import autocast
 from nnunet.training.learning_rate.poly_lr import poly_lr
 from batchgenerators.utilities.file_and_folder_operations import *
+from ptflops import get_model_complexity_info
+import sys
 
 
 class TransUNetTrainer(nnUNetTrainer):
@@ -269,6 +271,10 @@ class TransUNetTrainer(nnUNetTrainer):
 
         if self.fp16:
             with autocast():
+                flops, params = get_model_complexity_info(self.network, (1, 16, 48, 48), as_strings=True, print_per_layer_stat=True)
+                print(flops)
+                print(params)
+                sys.exit()
                 output = self.network(data)
                 del data
                 l = self.loss(output, target)

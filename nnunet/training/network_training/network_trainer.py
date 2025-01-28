@@ -427,7 +427,7 @@ class NetworkTrainer(object):
 
         self._maybe_init_amp()
 
-        maybe_mkdir_p(self.output_folder)        
+        maybe_mkdir_p(self.output_folder)
         self.plot_network_architecture()
 
         if cudnn.benchmark and cudnn.deterministic:
@@ -456,9 +456,13 @@ class NetworkTrainer(object):
                         tbar.set_postfix(loss=l)
                         train_losses_epoch.append(l)
             else:
+                ysl_start_time = time()
                 for _ in range(self.num_batches_per_epoch):
                     l = self.run_iteration(self.tr_gen, True)
                     train_losses_epoch.append(l)
+                ysl_end_time = time()
+                with open('/home/yusongli/transunet3d_train.log', 'w') as file:
+                    file.write(f'Time for single epoch train: {ysl_end_time - ysl_start_time}\n')
 
             self.all_tr_losses.append(np.mean(train_losses_epoch))
             self.print_to_log_file("train loss : %.4f" % self.all_tr_losses[-1])
@@ -467,9 +471,13 @@ class NetworkTrainer(object):
                 # validation with train=False
                 self.network.eval()
                 val_losses = []
+                ysl_start_time = time()
                 for b in range(self.num_val_batches_per_epoch):
                     l = self.run_iteration(self.val_gen, False, True)
                     val_losses.append(l)
+                ysl_end_time = time()
+                with open('/home/yusongli/transunet3d_validate.log', 'w') as file:
+                    file.write(f'Time for single epoch validate: {ysl_end_time - ysl_start_time}\n')
                 self.all_val_losses.append(np.mean(val_losses))
                 self.print_to_log_file("validation loss: %.4f" % self.all_val_losses[-1])
 
@@ -562,7 +570,7 @@ class NetworkTrainer(object):
         # update patience
         continue_training = True
         if self.patience is not None:
-            # if best_MA_val_eval_criterion_for_patience and 
+            # if best_MA_val_eval_criterion_for_patience and
             # best_epoch_based_on_MA_val_eval_criterion were not yet initialized,
             # initialize them
             if self.best_MA_val_eval_criterion_for_patience is None:
@@ -581,7 +589,7 @@ class NetworkTrainer(object):
                 self.best_val_eval_criterion_MA = self.val_eval_criterion_MA
                 self.print_to_log_file("saving best epoch checkpoint...")
                 if self.save_best_checkpoint: self.save_checkpoint(join(self.output_folder, "model_best.model"))
-            
+
             # Now see if the moving average of the validation criterion has improved
             if self.val_eval_criterion_MA > self.best_MA_val_eval_criterion_for_patience + self.val_eval_criterion_MA_eps:
                 self.best_MA_val_eval_criterion_for_patience = self.val_eval_criterion_MA

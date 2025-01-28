@@ -43,15 +43,18 @@ function main () {
     #     train "${i}"
     # done
 
-    trainer=TransUNetTrainer_yusongli
-    task=203
+    trainer=TransUNetTrainer_yusongli_revision
+    task=003
 
-    # preprocess "$task"
-    train 5 "$trainer" "$task" 0 &
-    train 6 "$trainer" "$task" 1 &
-    train 7 "$trainer" "$task" 2 &
-    train 5 "$trainer" "$task" 3 &
-    train 6 "$trainer" "$task" 4 &
+    # preprocess 003
+
+    train 0 "$trainer" "$task" 0
+
+    # train 5 "$trainer" "$task" 0 &
+    # train 6 "$trainer" "$task" 1 &
+    # train 7 "$trainer" "$task" 2 &
+    # train 5 "$trainer" "$task" 3 &
+    # train 6 "$trainer" "$task" 4 &
 }
 
 

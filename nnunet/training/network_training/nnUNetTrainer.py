@@ -14,6 +14,7 @@
 
 
 import shutil
+import time
 from collections import OrderedDict
 from multiprocessing import Pool
 from time import sleep
@@ -587,6 +588,7 @@ class nnUNetTrainer(NetworkTrainer):
             fname = properties['list_of_data_files'][0].split("/")[-1][:-12]
             if overwrite or (not isfile(join(output_folder, fname + ".nii.gz"))) or \
                     (save_softmax and not isfile(join(output_folder, fname + ".npz"))):
+                start = time.time()
                 data = np.load(self.dataset[k]['data_file'])['data']
 
                 print(k, data.shape)
@@ -602,6 +604,9 @@ class nnUNetTrainer(NetworkTrainer):
                                                                                      mixed_precision=self.fp16)[1]
 
                 softmax_pred = softmax_pred.transpose([0] + [i + 1 for i in self.transpose_backward])
+                end = time.time()
+                with open('/home/yusongli/transunet3d_predict.log', 'w') as file:
+                    file.write(f'Time for single prediction: {end - start}\n')
 
                 if save_softmax:
                     softmax_fname = join(output_folder, fname + ".npz")
@@ -643,7 +648,7 @@ class nnUNetTrainer(NetworkTrainer):
                              json_output_file=join(output_folder, "summary.json"),
                              json_name=job_name + " val tiled %s" % (str(use_sliding_window)),
                              json_author="Fabian",
-                             json_task=task, num_threads=default_num_threads, 
+                             json_task=task, num_threads=default_num_threads,
                              advanced=True)
 
         if run_postprocessing_on_folds:
